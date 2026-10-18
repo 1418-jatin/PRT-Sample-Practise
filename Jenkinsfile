@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'slave-nodes' }
 
     environment {
         DOCKER_IMAGE = "19901418/my-jenkins-python-app-ci-cd:latest"
