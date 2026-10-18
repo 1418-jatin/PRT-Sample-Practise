@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "19901418/my-jenkins-python-app-ci-cd:latest"
-        EC2_HOST = "ec2-user@54.163.199.47"
+        EC2_HOST = "ubuntu@54.163.199.47"
     }
 
     stages {
