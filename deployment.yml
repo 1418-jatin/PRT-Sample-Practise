@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foodexpress-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: foodexpress
+  template:
+    metadata:
+      labels:
+        app: foodexpress
+    spec:
+      containers:
+      - name: foodexpress
+        image: your-dockerhub-username/foodexpress:latest
+        ports:
+        - containerPort: 80
