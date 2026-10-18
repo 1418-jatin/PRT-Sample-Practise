@@ -2,22 +2,18 @@ pipeline {
     agent { label 'slave-nodes' }
 
     environment {
-        DOCKER_IMAGE = "19901418/my-jenkins-python-app-ci-cd:latest"
-        GIT_REPO     = "https://github.com/1418-jatin/PRT-Sample-Practise.git"
+        DOCKER_REPO  = "19901418/my-jenkins-python-app-ci-cd"
+        DOCKER_IMAGE = "19901418/my-jenkins-python-app-ci-cd:${BUILD_NUMBER}"
+        MASTER_IP    = "54.163.199.47"
     }
 
     stages {
-        stage('Checkout SCM') {
-            steps {
-                git branch: 'main',
-                    url: "${GIT_REPO}",
-                    credentialsId: 'dockerhub-cred'
-            }
-        }
+        // Jenkins already checks out the repo automatically (Declarative: Checkout SCM),
+        // so no extra checkout stage is needed.
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE} ."
+                sh 'docker build -t ${DOCKER_IMAGE} -t ${DOCKER_REPO}:latest .'
             }
         }
 
@@ -29,6 +25,7 @@ pipeline {
                     sh '''
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${DOCKER_IMAGE}
+                        docker push ${DOCKER_REPO}:latest
                     '''
                 }
             }
@@ -36,16 +33,31 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-cred', keyFileVariable: 'PEM_KEY')]) {
-                    sh """
-                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 \\
-                            'export KUBECONFIG=/root/.kube/config && \\
-                             kubectl apply -f /root/PRT/deployment.yml && \\
-                             kubectl apply -f /root/PRT/service.yml && \\
-                             kubectl rollout status deployment/foodexpress-deployment'
-                    """
+                withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-cred',
+                                                  keyFileVariable: 'PEM_KEY')]) {
+                    sh '''
+                        SSH_OPTS="-i $PEM_KEY -o StrictHostKeyChecking=no"
+
+                        # copy manifests from this checkout to the master
+                        ssh $SSH_OPTS ubuntu@${MASTER_IP} "mkdir -p ~/PRT"
+                        scp $SSH_OPTS deployment.yml service.yml ubuntu@${MASTER_IP}:~/PRT/
+
+                        # set this build's image tag, apply, and wait for rollout
+                        ssh $SSH_OPTS ubuntu@${MASTER_IP} "
+                            sed -i 's|image: .*|image: ${DOCKER_IMAGE}|' ~/PRT/deployment.yml &&
+                            kubectl apply -f ~/PRT/deployment.yml &&
+                            kubectl apply -f ~/PRT/service.yml &&
+                            kubectl rollout status deployment/foodexpress-deployment --timeout=120s
+                        "
+                    '''
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout || true'
         }
     }
 }
