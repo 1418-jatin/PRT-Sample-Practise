@@ -40,12 +40,12 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-cred',
                                                   keyFileVariable: 'PEM_KEY')]) {
                     sh '''
-                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47"
+                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 '
                             cd ~/PRT-Sample-Practise &&
                             kubectl apply -f deployment.yaml &&
                             kubectl apply -f service.yaml &&
                             kubectl rollout status deployment/myapp-deployment
-                        "
+                        '
                     '''
                 }
             }
