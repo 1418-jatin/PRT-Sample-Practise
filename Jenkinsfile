@@ -36,11 +36,11 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                // Use SSH to connect to kube-server and run kubectl
+                // Use SSH to connect to devops-master and run kubectl
                 withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-cred',
                                                   keyFileVariable: 'PEM_KEY')]) {
                     sh '''
-                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.159.22.245"
+                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47"
                             cd ~/PRT-Sample-Practise &&
                             kubectl apply -f deployment.yaml &&
                             kubectl apply -f service.yaml &&
