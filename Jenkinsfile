@@ -35,20 +35,16 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-            steps {
-                // Use SSH to connect to devops-master and run kubectl
-                withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-cred',
-                                                  keyFileVariable: 'PEM_KEY')]) {
-                    sh '''
-                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 '
-                            cd ~/PRT-Sample-Practise &&
-                            kubectl apply -f deployment.yml &&
-                            kubectl apply -f service.yml &&
-                            kubectl rollout status deployment/myapp-deployment
-                        '
-                    '''
-                }
-            }
+         withCredentials([sshUserPrivateKey(credentialsId: 'pem-key', keyFileVariable: 'PEM_KEY')]) {
+             sh """
+                 ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 \\
+                     'export KUBECONFIG=/root/.kube/config && \\
+                      kubectl apply -f /root/PRT/deployment.yml && \\
+                      kubectl apply -f /root/PRT/service.yml && \\
+                      kubectl rollout status deployment/foodexpress-deployment'
+             """
+        }
+     }
         }
     }
 }
