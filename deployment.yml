@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: foodexpress
-        image: your-dockerhub-username/foodexpress:latest
+        image: 19901418/my-jenkins-python-app-ci-cd:latest
         ports:
         - containerPort: 80
