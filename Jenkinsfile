@@ -3,13 +3,15 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "19901418/my-jenkins-python-app-ci-cd:latest"
-        EC2_HOST = "ubuntu@54.163.199.47"
+        GIT_REPO = "https://github.com/1418-jatin/PRT-Sample-Practise.git"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/1418-jatin/PRT-Sample-Practise.git'
+                git branch: 'main',
+                    url: "${GIT_REPO}",
+                    credentialsId: 'dockerhub-cred'
             }
         }
 
@@ -24,24 +26,27 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred',
                                                  usernameVariable: 'DOCKER_USER',
                                                  passwordVariable: 'DOCKER_PASS')]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    sh "docker push ${DOCKER_IMAGE}"
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${DOCKER_IMAGE}
+                    '''
                 }
             }
         }
 
-        stage('Deploy to EC2') {
+        stage('Deploy to Kubernetes') {
             steps {
+                // Use SSH to connect to kube-server and run kubectl
                 withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-cred',
-                                                  keyFileVariable: 'EC2_KEY')]) {
-                    sh """
-                    ssh -i $EC2_KEY -o StrictHostKeyChecking=no ${EC2_HOST} '
-                        docker pull ${DOCKER_IMAGE} &&
-                        docker stop myapp || true &&
-                        docker rm myapp || true &&
-                        docker run -d --name myapp -p 8081:8080 19901418/my-jenkins-python-app-ci-cd:latest
-                    '
-                    """
+                                                  keyFileVariable: 'PEM_KEY')]) {
+                    sh '''
+                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.159.22.245"
+                            cd ~/PRT-Sample-Practise &&
+                            kubectl apply -f deployment.yaml &&
+                            kubectl apply -f service.yaml &&
+                            kubectl rollout status deployment/myapp-deployment
+                        "
+                    '''
                 }
             }
         }
