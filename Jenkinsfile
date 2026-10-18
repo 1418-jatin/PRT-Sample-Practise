@@ -42,6 +42,7 @@ pipeline {
                     sh '''
                         scp -i $PEM_KEY -o StrictHostKeyChecking=no deployment.yaml service.yaml ubuntu@54.163.199.47:/home/ubuntu/
                         ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 '
+                        git clone https://github.com/1418-jatin/PRT-Sample-Practise.git ~/PRT-Sample-Practise || true
                             cd ~/PRT-Sample-Practise &&
                             kubectl apply -f deployment.yaml &&
                             kubectl apply -f service.yaml &&
