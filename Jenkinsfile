@@ -36,7 +36,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'pem-key', keyFileVariable: 'PEM_KEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-cred', keyFileVariable: 'PEM_KEY')]) {
                     sh """
                         ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 \\
                             'export KUBECONFIG=/root/.kube/config && \\
