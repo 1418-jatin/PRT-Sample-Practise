@@ -39,7 +39,7 @@ pipeline {
                         docker pull ${DOCKER_IMAGE} &&
                         docker stop myapp || true &&
                         docker rm myapp || true &&
-                        docker run -d --name myapp -p 8080:8080 ${DOCKER_IMAGE}
+                        docker run -d --name myapp -p 8081:8080 ${DOCKER_IMAGE}
                     '
                     """
                 }
