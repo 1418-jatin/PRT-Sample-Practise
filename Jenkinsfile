@@ -35,14 +35,16 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-            withCredentials([sshUserPrivateKey(credentialsId: 'pem-key', keyFileVariable: 'PEM_KEY')]) {
-                sh """
-                    ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 \\
-                        'export KUBECONFIG=/root/.kube/config && \\
-                         kubectl apply -f /root/PRT/deployment.yml && \\
-                         kubectl apply -f /root/PRT/service.yml && \\
-                         kubectl rollout status deployment/foodexpress-deployment'
-                """
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'pem-key', keyFileVariable: 'PEM_KEY')]) {
+                    sh """
+                        ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 \\
+                            'export KUBECONFIG=/root/.kube/config && \\
+                             kubectl apply -f /root/PRT/deployment.yml && \\
+                             kubectl apply -f /root/PRT/service.yml && \\
+                             kubectl rollout status deployment/foodexpress-deployment'
+                    """
+                }
             }
         }
     }
