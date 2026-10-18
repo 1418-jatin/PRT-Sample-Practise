@@ -41,7 +41,6 @@ pipeline {
                                                   keyFileVariable: 'PEM_KEY')]) {
                     sh '''
                         ssh -i $PEM_KEY -o StrictHostKeyChecking=no ubuntu@54.163.199.47 '
-                        git clone https://github.com/1418-jatin/PRT-Sample-Practise.git ~/PRT-Sample-Practise || true
                             cd ~/PRT-Sample-Practise &&
                             kubectl apply -f deployment.yml &&
                             kubectl apply -f service.yml &&
